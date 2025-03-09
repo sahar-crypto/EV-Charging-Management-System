@@ -92,7 +92,8 @@ Visit http://127.0.0.1:8000/ in your browser to access the application.
 
 ## **Testing with an OCPP Simulator**
 1- Use an OCPP simulator (e.g., [MicroOcppSimulator](https://github.com/matth-x/MicroOcppSimulator)) to connect to the backend.
-2- Send test requests (e.g., ==BootNotification==, ==Heartbeat==) and observe the logs and real-time updates in the frontend.
+
+2- Send test requests (e.g., BootNotification, Heartbeat) and observe the logs and real-time updates in the frontend.
 
 ## **API Endpoints**
 
@@ -108,7 +109,7 @@ Visit http://127.0.0.1:8000/ in your browser to access the application.
 |/manage_charger/<int:charger_id>/	    | Manage a charger (user only)    |
 
 
-## **WebSocket Endpoints*
+## **WebSocket Endpoints**
 
 |Endpoint                  | Description                           |
 |:-------------------------|:--------------------------------------|
