@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Transactions</h2>
+{% if no_transactions %}
+    <div class="no-transactions">
+        <p>No transactions done yet.</p>
+    </div>
+{% else %}
+    <ul>
+        {% for transaction in transactions %}
+            <li>
+                {{ transaction.charger.charger_id }} - {{ transaction.user.username }} - {{ transaction.start_time }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Welcome, {{ request.user.username }}</h2>
+
+{% if no_stations %}
+    <div class="no-stations">
+        <p>No stations added yet.</p>
+        <p>Would you like to <a href="{% url 'add_station' %}">add a station</a>?</p>
+    </div>
+{% else %}
+    <h3>Your Stations</h3>
+    <ul>
+        {% for station in stations %}
+            <li>
+                {{ station.name }} - {{ station.location }}
+                <a href="{% url 'update_station' station.id %}">Update</a>
+                <a href="{% url 'view_transactions' station.id %}">View Transactions</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <p><a href="{% url 'add_station' %}">Add Another Station</a></p>
+{% endif %}
+{% endblock %}

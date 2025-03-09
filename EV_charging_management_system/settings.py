@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,21 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'frontend.CustomUser'
+
+DEBUG = True
+
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+
+# Location of static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frontend/static'),  # Path to your static files
+]
+
+# Location for collected static files during production
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Application definition
 
@@ -39,7 +55,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'channels',
-    'stations',
+    'api',
+    'frontend'
 ]
 
 MIDDLEWARE = [
@@ -81,7 +98,11 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 

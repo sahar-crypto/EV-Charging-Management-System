@@ -1,0 +1,59 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<h2>Welcome, {{ request.user.username }}</h2>
+
+<h3>All Stations</h3>
+<ul>
+    {% for station in stations %}
+        <li>
+            {{ station.name }} - {{ station.location }}
+            <ul>
+                {% for charger in station.chargers.all %}
+                    <li>
+                        {{ charger.charger_id }} - Status: <span id="status-{{ charger.charger_id }}">Unknown</span>
+                        {% if charger.status == 'Available' %}
+                            <form action="{% url 'start_charging' charger.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit">Start Charging</button>
+                            </form>
+                        {% elif charger.status == 'Occupied' %}
+                            <form action="{% url 'stop_charging' charger.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit">Stop Charging</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>
+
+<script>
+    // Function to establish WebSocket connections for each charger
+    function connectToCharger(chargerId) {
+        const socket = new WebSocket(`ws://${window.location.host}/ws/charger/${chargerId}/`);
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'status_update') {
+                // Update the UI with the new status
+                const statusElement = document.getElementById(`status-${data.charger_id}`);
+                if (statusElement) {
+                    statusElement.textContent = data.status;
+                }
+            }
+        };
+
+        socket.onclose = function(event) {
+            console.error(`WebSocket closed for charger ${chargerId}:`, event);
+        };
+
+        socket.onerror = function(error) {
+            console.error(`WebSocket error for charger ${chargerId}:`, error);
+        };
+    }
+
+</script>
+{% endblock %}
