@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Charger {{charger.charger_id}}</h2>
+<div class="charger-{{charger.charger_id}}">
+    <li>
+        {{ charger.charger_id }} - {{ charger.status }} - {{ charger.activity }}
+        {% if charger.status == 'Available' %}
+            <form action="{% url 'start_charging' charger.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Start Charging</button>
+            </form>
+        {% elif charger.status == 'Occupied' %}
+            <form action="{% url 'stop_charging' charger.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Stop Charging</button>
+            </form>
+        {% endif %}
+    </li>
+</div>
+{% endblock %}

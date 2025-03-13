@@ -1,4 +1,4 @@
-{% extends 'frontend/base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
 <h2>Welcome, {{ request.user.username }}</h2>
@@ -11,7 +11,8 @@
             <ul>
                 {% for charger in station.chargers.all %}
                     <li>
-                        {{ charger.charger_id }} - Status: <span id="status-{{ charger.charger_id }}">Unknown</span>
+                        {{ charger.charger_id }} - Status: <span id="status-{{ charger.charger_id }}">{{ charger.status }}</span>
+                        <a href="{% url 'view_charger' charger.id %}">View</a>
                         {% if charger.status == 'Available' %}
                             <form action="{% url 'start_charging' charger.id %}" method="post">
                                 {% csrf_token %}
@@ -31,29 +32,44 @@
 </ul>
 
 <script>
-    // Function to establish WebSocket connections for each charger
-    function connectToCharger(chargerId) {
-        const socket = new WebSocket(`ws://${window.location.host}/ws/charger/${chargerId}/`);
+    // Loop through all chargers and create WebSocket connections
+    {% for station in stations %}
+        {% for charger in station.chargers.all %}
+            const chargerId = "{{ charger.charger_id }}";
+            const socketUrl = `ws://${window.location.host}/ws/charger/${chargerId}/`;
+            console.log(`Connecting to WebSocket at: ${socketUrl}`);
 
-        socket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.type === 'status_update') {
-                // Update the UI with the new status
-                const statusElement = document.getElementById(`status-${data.charger_id}`);
-                if (statusElement) {
-                    statusElement.textContent = data.status;
-                }
-            }
-        };
+            // Create a WebSocket connection
+            const socket = new WebSocket(socketUrl);
 
-        socket.onclose = function(event) {
-            console.error(`WebSocket closed for charger ${chargerId}:`, event);
-        };
+            // Handle connection open
+            socket.onopen = function (event) {
+                console.log(`WebSocket connection established for charger ${chargerId}.`);
+                document.getElementById(`status-${chargerId}`).innerText = "Connected";
+            };
 
-        socket.onerror = function(error) {
-            console.error(`WebSocket error for charger ${chargerId}:`, error);
-        };
-    }
+            // Handle incoming messages
+            socket.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                const message = data.message;  // Access the nested 'message' key
+                console.log(`Received message from charger ${chargerId}:`, message);
 
+                // Update the UI with the received message
+                document.getElementById(`status-${chargerId}`).innerText = `Status: ${message.status || "Unknown"}`;
+            };
+
+            // Handle connection close
+            socket.onclose = function (event) {
+                console.log(`WebSocket connection closed for charger ${chargerId}.`);
+                document.getElementById(`status-${chargerId}`).innerText = "Disconnected";
+            };
+
+            // Handle errors
+            socket.onerror = function (error) {
+                console.error(`WebSocket error for charger ${chargerId}:`, error);
+                document.getElementById(`status-${chargerId}`).innerText = "Connection Error";
+            };
+        {% endfor %}
+    {% endfor %}
 </script>
 {% endblock %}

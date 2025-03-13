@@ -11,7 +11,7 @@ class StationForm(forms.ModelForm):
 class ChargerForm(forms.ModelForm):
     class Meta:
         model = Charger
-        fields = ['status']
+        fields = ['charger_id', 'model', 'vendor']
 
 class CustomUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -20,7 +20,7 @@ class CustomUserCreationForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'username', 'is_staff']
+        fields = ['email', 'username', 'is_staff', 'password1', 'password2']  # Fixed
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
@@ -37,4 +37,4 @@ class CustomUserCreationForm(forms.ModelForm):
         return user
 
 class CustomAuthenticationForm(AuthenticationForm):
-    username = forms.CharField(label='Email / Username')
+    username = forms.CharField(label='Username or Email')  # Fixed

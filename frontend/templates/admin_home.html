@@ -16,6 +16,23 @@
                 {{ station.name }} - {{ station.location }}
                 <a href="{% url 'update_station' station.id %}">Update</a>
                 <a href="{% url 'view_transactions' station.id %}">View Transactions</a>
+
+                {% if station.chargers.exists %}
+                    <ul>
+                        {% for charger in station.chargers.all %}
+                        <li>
+                            {{ charger.charger_id }} - {{ charger.model }} - {{ charger.vendor }}
+                            <a href="{% url 'update_charger' charger.id %}">Update</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <p><a href="{% url 'add_charger' station.id %}">Add Another Charger</a></p>
+                {% else %}
+                    <div class="no-chargers">
+                        <p>No chargers added yet.</p>
+                        <p>Would you like to <a href="{% url 'add_charger' station.id %}">add a charger</a>?</p>
+                    </div>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>

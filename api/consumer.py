@@ -3,27 +3,89 @@ import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from ocpp.v16 import call, call_result
 from ocpp.v16 import ChargePoint as cp
-from ocpp.routing import on
+from ocpp.routing import on, create_route_map
+
 
 logger = logging.getLogger(__name__)
 
-class ChargePointConsumer(AsyncWebsocketConsumer, cp):
+class ChargePointConsumer(AsyncWebsocketConsumer):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ocpp_router = create_route_map(self)
+
+    async def route_message(self, message):
+        """ Route incoming OCPP messages to the appropriate handler """
+        try:
+            # Assuming message is a list where the first element is the message type
+            message_type = message[0]
+            payload = message[1]
+
+            # Use the OCPP router to handle the message
+            response = await self.ocpp_router.route_message(message_type, payload)
+            if response:
+                await self.send(text_data=json.dumps(response))
+        except Exception as e:
+            logger.error(f"Error routing message: {e}")
     
     async def connect(self):
-        """ Handle new WebSocket connection from an EV charger """
-        self.charger_id = self.scope["url_route"]["kwargs"]["charger_id"]
-        await self.accept()
-        logger.info(f"New connection: Charger {self.charger_id} connected.")
+        try:
+            self.charger_id = self.scope["url_route"]["kwargs"]["charger_id"]
+            self.group_name = f'charge_point_{self.charger_id}'
+
+            await self.channel_layer.group_add(
+                self.group_name,
+                self.channel_name
+            )
+            await self.accept()
+            logger.info(f"New connection: Charger {self.charger_id} connected.")
+            logger.debug(f"WebSocket handshake headers: {self.scope['headers']}")
+        except Exception as e:
+            logger.error(f"Error during WebSocket connection: {e}")
+            await self.close()
+            
 
     async def disconnect(self, close_code):
         """ Handle WebSocket disconnection """
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
         logger.info(f"Charger {self.charger_id} disconnected.")
 
-    async def receive(self, text_data):
+    '''async def receive(self, text_data):
         """ Handle incoming WebSocket messages (OCPP Requests) """
         message = json.loads(text_data)
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                'type': 'ocpp_message',
+                'message': message
+            }
+        )
         logger.info(f"Received message from {self.charger_id}: {message}")
-        await self.route_message(message)
+        await self.route_message(message)'''
+    
+    async def receive(self, text_data):
+        """ Handle incoming WebSocket messages (OCPP Requests) """
+        try:
+            message = json.loads(text_data)
+            if isinstance(message, list) and len(message) >= 2:
+                await self.route_message(message)
+            else:
+                logger.error(f"Invalid message format: {message}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding JSON: {e}")
+
+    async def ocpp_message(self, event):
+        message = event['message']
+
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
+        logger.info(f"Sent message to {self.charger_id}: {message}")
+
 
     async def send_status_update(self, status):
         """ Send a status update to the frontend """

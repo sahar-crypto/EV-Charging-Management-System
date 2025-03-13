@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Chargers</h2>
+{% if no_chargers %}
+    <div class="no-chargers">
+        <p>No chargers available.</p>
+    </div>
+{% else %}
+    <ul>
+        {% for charger in chargers %}
+            <li>
+                {{ charger.charger_id }} - {{ charger.status }} - {{ charger.activity }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}

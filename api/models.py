@@ -13,7 +13,7 @@ class Station(models.Model):
         return self.name
 
 class Charger(models.Model):
-    station = models.ForeignKey(Station, on_delete=models.CASCADE)
+    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='chargers')
     charger_id = models.CharField(max_length=50, unique=True, null=False)
     model = models.CharField(max_length=50)
     vendor = models.CharField(max_length=50)

@@ -9,17 +9,19 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 
 import os
 from django.core.asgi import get_asgi_application
+from django.urls import path
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from api import routing  
+from api.consumer import ChargePointConsumer
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EV_charging_management_system.settings')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
-        URLRouter(
-            routing.websocket_urlpatterns
-        )
+        URLRouter([
+            path("ws/charge_point/<str:charger_id>/", ChargePointConsumer.as_asgi()),
+        ])
     ),
 })

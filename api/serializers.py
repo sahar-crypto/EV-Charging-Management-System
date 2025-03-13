@@ -9,7 +9,7 @@ class StationSerializer(serializers.ModelSerializer):
 class ChargerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Charger
-        fields = ['station', 'charger_id', 'status']
+        fields = ['station', 'charger_id', 'status', 'model', 'vendor', 'activity']
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
